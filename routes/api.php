@@ -13,12 +13,16 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */ 
-Route::resource('/products', ProductController::class);
+// Route::resource('/products', ProductController::class);
 
+
+Route::get('/products/', [ProductController::class, 'index'])->name('product.index');
+Route::get('/products/{id}', [ProductController::class, 'show'])->name('product.show');
 Route::get('/products/search/{name}',[ProductController::class, 'search'])->name('product.search');
-// Route::get('/products/{id}', [ProductController::class, 'show'])->name('product.show');
 // Route::post('/products', [ProductController::class, 'store'])->name('product.store');
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::group(['middleware'=>['auth:sanctum']], function () {
+    Route::post('/products', [ProductController::class, 'store'])->name('product.store');
+    Route::put('/products/{id}', [ProductController::class, 'update'])->name('product.update');
+    Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('product.destroy');
 });
