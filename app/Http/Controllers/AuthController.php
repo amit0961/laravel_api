@@ -2,28 +2,85 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Register to Register with validation
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function register(Request $request)
     {
-        //
+        $input_fields = $request->validate([
+            'name' => 'required|string',
+            'email' => 'required|string|unique:users,email',
+            'password' => 'required|string|confirmed'
+
+            ]);
+            
+            $user = User::create([
+                'name' => $input_fields['name'],
+                'email' => $input_fields['email'],
+                'password' => $input_fields['password']
+            ]);
+
+            $token = $user->createToken('myapptoken')->plainTextToken;
+
+            $response = [
+                'user' => $user,
+                'token' => $token
+            ];
+            return response($response , 201);
+    }
+
+
+    /**
+     * Register to Login with validation
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function login(Request $request)
+    {
+        $input_fields = $request->validate([
+            'email' => 'required|string',
+            'password' => 'required|string'
+
+            ]);
+
+            //Check Email
+            $user = User::where('email',$input_fields['email'])->first();
+            //Check Password
+            if (!$user || ! $input_fields['password']) {
+               return response([
+                   'message'=>'Bad Request'
+               ],401);
+            }
+
+            $token = $user->createToken('myapptoken')->plainTextToken;
+
+            $response = [
+                'user' => $user,
+                'token' => $token
+            ];
+            return response($response , 201);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * For Logout Session
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function logout(Request $request)
     {
-        //
+        auth('sanctum')->user()->tokens()->delete();
+        return [
+            'message' => 'Logged Out!!!'
+        ] ;
     }
 
     /**
